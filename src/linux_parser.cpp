@@ -10,8 +10,6 @@
 
 #include "utils.h"
 
-#include <iostream>
-
 using std::stof;
 using std::stol;
 using std::string;
@@ -148,8 +146,7 @@ long LinuxParser::ActiveJiffies(int pid) {
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Command(int pid) {
-  string procCmdFile =
-      kProcDirectory + std::to_string(pid) + "/" + kCpuinfoFilename;
+  string procCmdFile = kProcDirectory + std::to_string(pid) + kCmdlineFilename;
   return Utils::getLine(procCmdFile, 1);
 }
 
@@ -157,7 +154,7 @@ string LinuxParser::Command(int pid) {
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Ram(int pid) {
   string procStatusFile =
-      kProcDirectory + std::to_string(pid) + "/" + kStatusFilename;
+      kProcDirectory + std::to_string(pid) + kStatusFilename;
 
   // divide by 1000 to convert from KB to MB
   long vmSizeMB =
@@ -169,7 +166,7 @@ string LinuxParser::Ram(int pid) {
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Uid(int pid) {
   std::string procStatusFile =
-      kProcDirectory + std::to_string(pid) + "/" + kStatusFilename;
+      kProcDirectory + std::to_string(pid) + kStatusFilename;
   return Utils::getTokenInLine(procStatusFile, 9, 2);
 }
 
@@ -202,7 +199,7 @@ string LinuxParser::User(int pid) {
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::UpTime(int pid) {
   std::string procStatFile =
-      kProcDirectory + std::to_string(pid) + "/" + kStatFilename;
+      kProcDirectory + std::to_string(pid) + kStatFilename;
   vector<string> procStats = procStatTokens(pid);
 
   // start time of the process in jiffies
@@ -214,8 +211,7 @@ long LinuxParser::UpTime(int pid) {
 
 vector<string> LinuxParser::procStatTokens(int pid) {
   vector<string> procStats;
-  string procStatFile =
-      kProcDirectory + std::to_string(pid) + "/" + kStatFilename;
+  string procStatFile = kProcDirectory + std::to_string(pid) + kStatFilename;
   string procStatsStr = Utils::getLine(procStatFile, 1);
   std::istringstream procStatsStream(procStatsStr);
   for (string stat; procStatsStream >> stat; procStats.push_back(stat))

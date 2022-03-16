@@ -15,6 +15,7 @@ std::string getLine(std::string fileName, uint32_t lineNumber) {
       }
     }
   }
+
   return line;
 }
 
