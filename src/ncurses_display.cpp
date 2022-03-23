@@ -2,15 +2,15 @@
 
 #include <curses.h>
 
+#include <algorithm>
 #include <chrono>
 #include <string>
 #include <thread>
 #include <vector>
-#include <algorithm>
 
 #include "format.h"
-#include "system.h"
 #include "process.h"
+#include "system.h"
 
 using std::string;
 using std::to_string;

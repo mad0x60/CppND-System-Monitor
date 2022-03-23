@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -135,6 +136,9 @@ int LinuxParser::RunningProcesses() {
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::ActiveJiffies(int pid) {
   vector<string> procStats = procStatTokens(pid);
+  if(procStats.empty()) {
+    return 0;
+  }
   long userTime = stol(procStats[ProcStates::utime_]);
   long kernelTime = stol(procStats[ProcStates::stime_]);
   long childUserTime = stol(procStats[ProcStates::cutime_]);
@@ -157,8 +161,12 @@ string LinuxParser::Ram(int pid) {
       kProcDirectory + std::to_string(pid) + kStatusFilename;
 
   // divide by 1000 to convert from KB to MB
-  long vmSizeMB =
-      std::stol(Utils::getTokenInLine(procStatusFile, 18, 2)) / 1000;
+  long vmSizeMB;
+  try {
+    vmSizeMB = std::stol(Utils::getTokenInLine(procStatusFile, 18, 2)) / 1000;
+  } catch (...) {
+    vmSizeMB = 0;
+  }
   return std::to_string(vmSizeMB);
 }
 
@@ -202,8 +210,14 @@ long LinuxParser::UpTime(int pid) {
       kProcDirectory + std::to_string(pid) + kStatFilename;
   vector<string> procStats = procStatTokens(pid);
 
-  // start time of the process in jiffies
-  long startTime = stol(procStats[ProcStates::starttime_]);
+  long startTime;
+
+  if (procStats.empty()) {
+    startTime = 0;
+  } else {
+    // start time of the process in jiffies
+  startTime = stol(procStats[ProcStates::starttime_]);
+  }
 
   // convert jiffies to seconds and subtract if from the total system uptime
   return UpTime() - startTime / sysconf(_SC_CLK_TCK);

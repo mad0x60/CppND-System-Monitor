@@ -5,7 +5,7 @@
 
 namespace Utils {
 std::string getLine(std::string fileName, uint32_t lineNumber) {
-  std::string line;
+  std::string line = "";
   std::ifstream filestream(fileName);
   if (filestream.is_open()) {
     uint32_t i = 1;
