@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <cstring>
+#include <filesystem>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -17,7 +18,6 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-// DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
   string line;
   string key;
@@ -40,7 +40,6 @@ string LinuxParser::OperatingSystem() {
   return value;
 }
 
-// DONE: An example of how to read data from the filesystem
 string LinuxParser::Kernel() {
   string os, kernel, version;
   string line;
@@ -53,27 +52,23 @@ string LinuxParser::Kernel() {
   return kernel;
 }
 
-// BONUS: Update this to use std::filesystem
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
-  DIR* directory = opendir(kProcDirectory.c_str());
-  struct dirent* file;
-  while ((file = readdir(directory)) != nullptr) {
-    // Is this a directory?
-    if (file->d_type == DT_DIR) {
-      // Is every character of the name a digit?
-      string filename(file->d_name);
-      if (std::all_of(filename.begin(), filename.end(), isdigit)) {
-        int pid = stoi(filename);
-        pids.push_back(pid);
-      }
+
+  for (const auto& file : std::filesystem::directory_iterator(kProcDirectory)) {
+    string dirPath = string(file.path());
+    string dirName =
+        dirPath.substr(dirPath.find_last_of("/") + 1, dirPath.length());
+
+    // filter only directories with a name that has digits only.
+    if (dirName.find_first_not_of("0123456789") == string::npos) {
+      pids.push_back(std::stoi(dirName));
     }
   }
-  closedir(directory);
   return pids;
 }
 
-// TODO: Read and return the system memory utilization
+// Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() {
   long memTotal =
       std::stol(Utils::getTokenInLine(kProcDirectory + kMeminfoFilename, 1, 2));
@@ -82,13 +77,13 @@ float LinuxParser::MemoryUtilization() {
   return (float)(memTotal - memFree) / memTotal;
 }
 
-// TODO: Read and return the system uptime in seconds
+// Read and return the system uptime in seconds
 long LinuxParser::UpTime() {
   return std::stol(
       Utils::getTokenInLine(kProcDirectory + kUptimeFilename, 1, 1));
 }
 
-// TODO: Read and return the number of jiffies for the system
+// Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() {
   long totalJiffies = 0;
   for (string stat : CpuUtilization()) {
@@ -98,10 +93,10 @@ long LinuxParser::Jiffies() {
   return totalJiffies;
 }
 
-// TODO: Read and return the number of active jiffies for the system
+// Read and return the number of active jiffies for the system
 long LinuxParser::ActiveJiffies() { return Jiffies() - IdleJiffies(); }
 
-// TODO: Read and return the number of idle jiffies for the system
+// Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() {
   vector<string> CpuStats = CpuUtilization();
   long idleTime = stol(CpuStats[CPUStates::kIdle_]);
@@ -110,7 +105,7 @@ long LinuxParser::IdleJiffies() {
   return idleTime + ioWaitTime;
 }
 
-// TODO: Read and return CPU utilization
+// Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() {
   vector<string> cpuStats;
   string cpuStatsStr = Utils::getLine(kProcDirectory + kStatFilename, 1);
@@ -121,22 +116,21 @@ vector<string> LinuxParser::CpuUtilization() {
   return cpuStats;
 }
 
-// TODO: Read and return the total number of processes
+// Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
   return std::stol(Utils::getTokenInLine(kProcDirectory + kStatFilename, 9, 2));
 }
 
-// TODO: Read and return the number of running processes
+// Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
   return std::stol(
       Utils::getTokenInLine(kProcDirectory + kStatFilename, 10, 2));
 }
 
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the number of active jiffies for a PID
 long LinuxParser::ActiveJiffies(int pid) {
   vector<string> procStats = procStatTokens(pid);
-  if(procStats.empty()) {
+  if (procStats.empty()) {
     return 0;
   }
   long userTime = stol(procStats[ProcStates::utime_]);
@@ -147,15 +141,13 @@ long LinuxParser::ActiveJiffies(int pid) {
   return userTime + kernelTime + childUserTime + childKernelTime;
 }
 
-// TODO: Read and return the command associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the command associated with a process
 string LinuxParser::Command(int pid) {
   string procCmdFile = kProcDirectory + std::to_string(pid) + kCmdlineFilename;
   return Utils::getLine(procCmdFile, 1);
 }
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the memory used by a process
 string LinuxParser::Ram(int pid) {
   string procStatusFile =
       kProcDirectory + std::to_string(pid) + kStatusFilename;
@@ -170,16 +162,14 @@ string LinuxParser::Ram(int pid) {
   return std::to_string(vmSizeMB);
 }
 
-// TODO: Read and return the user ID associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid) {
   std::string procStatusFile =
       kProcDirectory + std::to_string(pid) + kStatusFilename;
   return Utils::getTokenInLine(procStatusFile, 9, 2);
 }
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the user associated with a process
 string LinuxParser::User(int pid) {
   string uid = Uid(pid);  // string of UID
 
@@ -203,8 +193,7 @@ string LinuxParser::User(int pid) {
   return string();
 }
 
-// TODO: Read and return the uptime of a process in seconds
-// REMOVE: [[maybe_unused]] once you define the function
+// Read and return the uptime of a process in seconds
 long LinuxParser::UpTime(int pid) {
   std::string procStatFile =
       kProcDirectory + std::to_string(pid) + kStatFilename;
@@ -216,7 +205,7 @@ long LinuxParser::UpTime(int pid) {
     startTime = 0;
   } else {
     // start time of the process in jiffies
-  startTime = stol(procStats[ProcStates::starttime_]);
+    startTime = stol(procStats[ProcStates::starttime_]);
   }
 
   // convert jiffies to seconds and subtract if from the total system uptime

@@ -19,15 +19,6 @@ const std::string kVersionFilename{"/version"};
 const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
 
-// System
-float MemoryUtilization();
-long UpTime();
-std::vector<int> Pids();
-int TotalProcesses();
-int RunningProcesses();
-std::string OperatingSystem();
-std::string Kernel();
-
 // CPU
 enum CPUStates {
   kUser_ = 0,
@@ -42,6 +33,7 @@ enum CPUStates {
   kGuestNice_
 };
 
+// Process
 enum ProcStates {
   pid_ = 0,
   comm_,
@@ -97,18 +89,121 @@ enum ProcStates {
   exit_code_
 };
 
+// System
+/**
+ *
+ * @return float memory utilization of the system
+ */
+float MemoryUtilization();
+
+/**
+ *
+ * @return long The uptime of the system
+ */
+long UpTime();
+
+/**
+ *
+ * @return std::vector<int> of the current processes of the system
+ */
+std::vector<int> Pids();
+
+/**
+ *
+ * @return int the total number of processes in the system
+ */
+int TotalProcesses();
+
+/**
+ *
+ * @return int the number of running processes
+ */
+int RunningProcesses();
+
+/**
+ *
+ * @return std::string of the current operating system
+ */
+std::string OperatingSystem();
+
+/**
+ *
+ * @return std::string of the kernel of the running operating system
+ */
+std::string Kernel();
+
+/**
+ *
+ * @return std::vector<std::string> of cpu stats from the /proc/stat file
+ */
 std::vector<std::string> CpuUtilization();
+
+/**
+ *
+ * @return long the number of passed jiffies of the system
+ */
 long Jiffies();
+
+/**
+ *
+ * @return long the number of active jiffies of the system
+ */
 long ActiveJiffies();
-long ActiveJiffies(int pid);
+
+/**
+ *
+ * @return long the number of idle jiffies of the system
+ */
 long IdleJiffies();
 
 // Processes
+/**
+ * @param pid process id
+ * @return std::string the command used to run the process with process id pid
+ */
 std::string Command(int pid);
+
+/**
+ * @param pid process id
+ * @return std::string the RAM usage of the process with process id pid
+ */
 std::string Ram(int pid);
+
+/**
+ * @param pid process id
+ * @return std::string the user id of the process with process id pid
+ */
 std::string Uid(int pid);
+
+/**
+ * @param pid process id
+ * @return std::string the username of the process with process id pid
+ */
 std::string User(int pid);
-long int UpTime(int pid);
+
+/**
+ * @param pid process id
+ * @return long the uptime of the process with process id pid
+ */
+long UpTime(int pid);
+
+/**
+ *
+ * @param pid process id
+ * @return long the number of active jiffies of the process with process id pid
+ */
+
+/**
+ * @param pid process id
+ * @return long the number of active jiffies of the process with process id pid
+ */
+long ActiveJiffies(int pid);
+
+/**
+ * @param pid process id
+ * @return std::vector<std::string> a vector of strings of the tokens of the
+ * /proc/[pid]/stat file
+ */
 std::vector<std::string> procStatTokens(int pid);
 };  // namespace LinuxParser
 
